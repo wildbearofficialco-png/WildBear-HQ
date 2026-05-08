@@ -1,0 +1,7 @@
+WildBear HQ build plan
+
+Phase 1: basic app
+Phase 2: folders
+Phase 3: screens
+Phase 4: saved data
+Phase 5: automation links
