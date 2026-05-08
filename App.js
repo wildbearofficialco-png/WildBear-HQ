@@ -1,6 +1,5 @@
 import React from 'react';
 import { SafeAreaView, View, Text, ScrollView, StyleSheet } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 
 const Card = ({ title, text }) => (
   <View style={styles.card}>
@@ -12,7 +11,6 @@ const Card = ({ title, text }) => (
 export default function App() {
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.logo}>🐻 WildBear OS</Text>
         <Text style={styles.subtitle}>
