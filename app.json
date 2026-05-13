@@ -1,0 +1,1 @@
+{"expo":{"name":"WildBear HQ","slug":"wildbear-hq","version":"1.0.0","orientation":"portrait","icon":"./assets/icon.png","userInterfaceStyle":"dark","splash":{"backgroundColor":"#061316"},"assetBundlePatterns":["**/*"],"ios":{"supportsTablet":true},"android":{"adaptiveIcon":{"backgroundColor":"#061316"}},"web":{"bundler":"metro"}}}
