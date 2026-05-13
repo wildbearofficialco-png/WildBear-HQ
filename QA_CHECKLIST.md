@@ -21,6 +21,8 @@ Use this checklist before sharing WildBear HQ with anyone.
 - [ ] Mission text can be edited
 - [ ] Post a clip button works
 - [ ] Open Agents button switches tabs
+- [ ] Reset Demo button restores starter state
+- [ ] Save status message displays
 - [ ] Energy input accepts numbers
 - [ ] Focus input accepts text
 - [ ] Today’s win input accepts text
@@ -66,13 +68,25 @@ Use this checklist before sharing WildBear HQ with anyone.
 - [ ] Conversion rate updates correctly
 - [ ] Offer Ladder card displays
 
+## Persistence Tests
+
+- [ ] Mission survives app reload
+- [ ] Added episode survives reload
+- [ ] Added product survives reload
+- [ ] Added pipeline asset survives reload
+- [ ] Product progress survives reload
+- [ ] Agent state survives reload
+- [ ] Revenue values survive reload
+- [ ] Reset Demo restores starter state correctly
+- [ ] Corrupted save data does not crash app
+
 ## Known Current Limitations
 
-- Data does not persist after reload yet
 - App is still a single-file prototype
 - No delete/edit buttons for created records yet
 - No real AI/API connections yet
 - No account system yet
+- No cloud sync yet
 
 ## Pass Criteria For First Shareable Demo
 
@@ -81,5 +95,6 @@ The app is ready for a first informal test when:
 - all tabs open
 - all buttons work
 - no red error screen appears
+- persistence works reliably
 - core interactions work on iPhone
 - the user understands the app within 60 seconds
