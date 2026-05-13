@@ -69,6 +69,7 @@ export default function App() {
   const activeAgents = agents.filter(a => a.status === 'Active').length;
   const completedTasks = tasks.filter(t => t.done).length;
   const openTasks = tasks.filter(t => !t.done);
+  const topThreeTasks = openTasks.slice(0, 3);
   const focusTask = openTasks.find(t => t.priority === 'High') || openTasks[0];
   const projectedValue = useMemo(() => products.reduce((sum, p) => sum + p.price * Math.round(p.progress / 20), 0), [products]);
   const rph = useMemo(() => { const rev = Number(revenue || 0); const h = Number(hours || 1); return h > 0 ? Math.round(rev / h) : 0; }, [revenue, hours]);
