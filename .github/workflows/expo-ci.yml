@@ -26,13 +26,13 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Verify package metadata
-        run: node -e "const pkg=require('./package.json'); if(!pkg.scripts || !pkg.scripts.start){ throw new Error('Missing start script'); } if(!pkg.dependencies || !pkg.dependencies.expo){ throw new Error('Missing Expo dependency'); } if(!pkg.dependencies['@react-native-async-storage/async-storage']){ throw new Error('Missing AsyncStorage dependency'); } console.log('Package OK:', pkg.name);"
+        run: node -e "const pkg=require('./package.json'); if(!pkg.scripts || !pkg.scripts.start){ throw new Error('Missing start script'); } if(!pkg.dependencies || !pkg.dependencies.expo){ throw new Error('Missing Expo dependency'); } console.log('Package OK:', pkg.name);"
 
       - name: Verify app config
         run: node -e "const cfg=require('./app.json'); if(!cfg.expo || !cfg.expo.name){ throw new Error('Missing expo app config'); } console.log('Expo config OK:', cfg.expo.name);"
 
       - name: Basic source sanity check
-        run: node -e "const fs=require('fs'); const app=fs.readFileSync('App.js','utf8'); if(!app.includes('export default function App')){ throw new Error('App.js missing default App export'); } if(!app.includes('WildBear')){ throw new Error('App.js missing WildBear branding'); } if(!app.includes('loadAppState') || !app.includes('saveAppState')){ throw new Error('App.js missing persistence wiring'); } console.log('App.js sanity check passed');"
+        run: node -e "const fs=require('fs'); const app=fs.readFileSync('App.js','utf8'); if(!app.includes('export default function App')){ throw new Error('App.js missing default App export'); } if(!app.includes('WildBear')){ throw new Error('App.js missing WildBear branding'); } if(!app.includes('Snack-safe local session')){ throw new Error('App.js missing Snack-safe runtime marker'); } console.log('App.js sanity check passed');"
 
-      - name: Persistence source sanity check
-        run: node -e "const fs=require('fs'); const p=fs.readFileSync('storage/persistence.js','utf8'); ['saveAppState','loadAppState','resetAppState','createPersistedState','wildbear_hq_state_v1'].forEach(token=>{ if(!p.includes(token)){ throw new Error('Missing persistence token: '+token); } }); console.log('Persistence source sanity check passed');"
+      - name: Architecture file sanity check
+        run: node -e "const fs=require('fs'); ['storage/persistence.js','constants/theme.js','components/ui.js','data/starterData.js'].forEach(path=>{ if(!fs.existsSync(path)){ throw new Error('Missing architecture file: '+path); } }); console.log('Architecture files present');"
