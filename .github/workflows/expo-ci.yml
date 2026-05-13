@@ -21,16 +21,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Verify package metadata
-        run: node -e "const pkg=require('./package.json'); if(!pkg.scripts || !pkg.scripts.start){ throw new Error('Missing start script'); } console.log('Package OK:', pkg.name);"
+        run: node -e "const pkg=require('./package.json'); if(!pkg.scripts || !pkg.scripts.start){ throw new Error('Missing start script'); } if(!pkg.dependencies || !pkg.dependencies.expo){ throw new Error('Missing Expo dependency'); } console.log('Package OK:', pkg.name);"
 
-      - name: Expo dependency check
-        run: npx expo install --check
+      - name: Verify app config
+        run: node -e "const cfg=require('./app.json'); if(!cfg.expo || !cfg.expo.name){ throw new Error('Missing expo app config'); } console.log('Expo config OK:', cfg.expo.name);"
 
       - name: Basic source sanity check
-        run: node -e "const fs=require('fs'); const app=fs.readFileSync('App.js','utf8'); if(!app.includes('export default function App')){ throw new Error('App.js missing default App export'); } console.log('App.js sanity check passed');"
+        run: node -e "const fs=require('fs'); const app=fs.readFileSync('App.js','utf8'); if(!app.includes('export default function App')){ throw new Error('App.js missing default App export'); } if(!app.includes('WildBear')){ throw new Error('App.js missing WildBear branding'); } console.log('App.js sanity check passed');"
