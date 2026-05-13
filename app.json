@@ -1,1 +1,38 @@
-{"expo":{"name":"WildBear HQ","slug":"wildbear-hq","version":"1.0.0","orientation":"portrait","icon":"./assets/icon.png","userInterfaceStyle":"dark","splash":{"backgroundColor":"#061316"},"assetBundlePatterns":["**/*"],"ios":{"supportsTablet":true},"android":{"adaptiveIcon":{"backgroundColor":"#061316"}},"web":{"bundler":"metro"}}}
+{
+  "expo": {
+    "name": "WildBear HQ",
+    "slug": "wildbear-hq",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "wildbearhq",
+    "description": "AI-powered solo founder command center for WildBear.Co, The Wind Under the Sea, digital products, content pipelines, AI agents, and revenue per hour.",
+    "primaryColor": "#52E0D4",
+    "splash": {
+      "backgroundColor": "#061316",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "co.wildbear.hq"
+    },
+    "android": {
+      "package": "co.wildbear.hq",
+      "adaptiveIcon": {
+        "backgroundColor": "#061316"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "name": "WildBear HQ"
+    },
+    "extra": {
+      "productMission": "Create once, repurpose everywhere, and turn the best ideas into digital products.",
+      "brand": "WildBear.Co"
+    }
+  }
+}
