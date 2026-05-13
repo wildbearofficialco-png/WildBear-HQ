@@ -1,15 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SafeAreaView, View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { createPersistedState, loadAppState, resetAppState, saveAppState } from './storage/persistence';
 
 const COLORS = { bg: '#061316', panel: '#0B1B22', card: '#10262E', card2: '#14323A', border: '#254853', text: '#F4FBFC', muted: '#9AB3B8', teal: '#52E0D4', orange: '#FF9A3D', green: '#71E083', red: '#FF6B6B', yellow: '#FFD166' };
 const TABS = ['HQ', 'Create', 'Pipeline', 'Products', 'Agents', 'Money'];
 const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 const stages = ['Idea', 'Script', 'Record', 'Edit', 'Clip', 'Post', 'Offer'];
 const nextStage = (stage) => stages[Math.min(stages.length - 1, stages.indexOf(stage) + 1)];
-
 const STARTER_MISSION = 'Record one honest idea. Turn it into ten useful assets.';
 const STARTER_CHECK_IN = { energy: '7', focus: 'Build the machine', win: '' };
+
 const starterEpisodes = [
   { id: 1, title: 'The Loneliness of Functioning', status: 'Published', clips: 8, next: 'Post 2 follow-up reels' },
   { id: 2, title: 'What You’re Actually Chasing', status: 'Repurpose', clips: 5, next: 'Turn best quote into TikTok' },
@@ -19,11 +18,6 @@ const starterProducts = [
   { id: 1, name: 'Breaking to Begin Workbook', progress: 72, price: 17, next: 'Finish final Canva polish' },
   { id: 2, name: 'Stillness in Motion eBook', progress: 64, price: 27, next: 'Add Gumroad sales copy' },
   { id: 3, name: 'Podcast to Profit Template', progress: 18, price: 47, next: 'Outline template sections' },
-];
-const starterTasks = [
-  { id: 1, title: 'Record one 20 minute episode segment', area: 'Create', done: false },
-  { id: 2, title: 'Turn best idea into a paid worksheet', area: 'Products', done: false },
-  { id: 3, title: 'Post one honest TikTok invite', area: 'Marketing', done: true },
 ];
 const starterPipeline = [
   { id: 1, asset: 'Episode 5 master audio', stage: 'Clip', owner: 'Clip Miner', value: '50+ shorts' },
@@ -48,12 +42,10 @@ function PrimaryButton({ label, onPress }) { return <TouchableOpacity onPress={o
 
 export default function App() {
   const [active, setActive] = useState('HQ');
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [saveStatus, setSaveStatus] = useState('Loading HQ memory...');
+  const [saveStatus, setSaveStatus] = useState('Snack-safe local session');
   const [mission, setMission] = useState(STARTER_MISSION);
   const [episodes, setEpisodes] = useState(starterEpisodes);
   const [products, setProducts] = useState(starterProducts);
-  const [tasks, setTasks] = useState(starterTasks);
   const [pipeline, setPipeline] = useState(starterPipeline);
   const [agents, setAgents] = useState(starterAgents);
   const [revenue, setRevenue] = useState('0');
@@ -62,83 +54,36 @@ export default function App() {
   const [sales, setSales] = useState('0');
   const [newEpisode, setNewEpisode] = useState('');
   const [newProduct, setNewProduct] = useState('');
-  const [newTask, setNewTask] = useState('');
   const [newAsset, setNewAsset] = useState('');
   const [checkIn, setCheckIn] = useState(STARTER_CHECK_IN);
 
-  useEffect(() => {
-    async function restoreMemory() {
-      const saved = await loadAppState();
-      if (saved) {
-        setMission(saved.mission ?? STARTER_MISSION);
-        setEpisodes(saved.episodes ?? starterEpisodes);
-        setProducts(saved.products ?? starterProducts);
-        setTasks(saved.tasks ?? starterTasks);
-        setPipeline(saved.pipeline ?? starterPipeline);
-        setAgents(saved.agents ?? starterAgents);
-        setRevenue(saved.revenue ?? '0');
-        setHours(saved.hours ?? '3');
-        setVisitors(saved.visitors ?? '100');
-        setSales(saved.sales ?? '0');
-        setCheckIn(saved.checkIn ?? STARTER_CHECK_IN);
-        setSaveStatus('HQ memory restored');
-      } else {
-        setSaveStatus('Using starter HQ data');
-      }
-      setHasLoaded(true);
-    }
-    restoreMemory();
-  }, []);
-
-  useEffect(() => {
-    if (!hasLoaded) return;
-    const state = createPersistedState({ mission, episodes, products, tasks, pipeline, agents, revenue, hours, visitors, sales, checkIn });
-    saveAppState(state).then((ok) => setSaveStatus(ok ? 'HQ memory saved' : 'Save failed'));
-  }, [hasLoaded, mission, episodes, products, tasks, pipeline, agents, revenue, hours, visitors, sales, checkIn]);
-
-  const resetDemoData = async () => {
-    await resetAppState();
-    setMission(STARTER_MISSION);
-    setEpisodes(starterEpisodes);
-    setProducts(starterProducts);
-    setTasks(starterTasks);
-    setPipeline(starterPipeline);
-    setAgents(starterAgents);
-    setRevenue('0');
-    setHours('3');
-    setVisitors('100');
-    setSales('0');
-    setCheckIn(STARTER_CHECK_IN);
-    setSaveStatus('Demo HQ restored');
-  };
-
-  const doneTasks = tasks.filter(t => t.done).length;
   const activeAgents = agents.filter(a => a.status === 'Active').length;
   const projectedValue = useMemo(() => products.reduce((sum, p) => sum + p.price * Math.round(p.progress / 20), 0), [products]);
   const rph = useMemo(() => { const rev = Number(revenue || 0); const h = Number(hours || 1); return h > 0 ? Math.round(rev / h) : 0; }, [revenue, hours]);
   const conversion = useMemo(() => { const v = Number(visitors || 0); const s = Number(sales || 0); return v > 0 ? ((s / v) * 100).toFixed(1) : '0.0'; }, [visitors, sales]);
   const stageCounts = useMemo(() => stages.map(stage => ({ stage, count: pipeline.filter(p => p.stage === stage).length })), [pipeline]);
   const bottleneck = useMemo(() => stageCounts.reduce((max, item) => item.count > max.count ? item : max, stageCounts[0]), [stageCounts]);
-  const nextOpenTask = tasks.find(t => !t.done)?.title || 'Create the next revenue-producing asset';
-  const commandBrief = `${bottleneck.stage} is the bottleneck. Move one asset forward, then complete: ${nextOpenTask}.`;
-  const momentum = Math.min(100, Math.round((doneTasks * 15) + (activeAgents * 10) + (pipeline.filter(p=>p.stage === 'Post' || p.stage === 'Offer').length * 10) + (episodes.reduce((s,e)=>s+e.clips,0) * 2)));
+  const commandBrief = `${bottleneck.stage} is the bottleneck. Move one asset forward, then create or improve one sellable offer.`;
+  const momentum = Math.min(100, Math.round((activeAgents * 12) + (pipeline.filter(p=>p.stage === 'Post' || p.stage === 'Offer').length * 14) + (episodes.reduce((s,e)=>s+e.clips,0) * 2)));
   const agentThroughput = agents.reduce((sum, a) => sum + a.throughput, 0);
 
-  const publishNextClip = () => setEpisodes(list => list.map((e, i) => i === 0 ? { ...e, clips: e.clips + 1, next: 'Clip posted. Pick the next strongest moment.' } : e));
-  const advanceProduct = (id) => setProducts(list => list.map(p => p.id === id ? { ...p, progress: Math.min(100, p.progress + 8), next: p.progress + 8 >= 100 ? 'Ready to sell' : p.next } : p));
-  const addEpisode = () => { if (!newEpisode.trim()) return; setEpisodes([{ id: Date.now(), title: newEpisode.trim(), status: 'Draft', clips: 0, next: 'Write hook, outline, and promo angle' }, ...episodes]); setNewEpisode(''); };
-  const addProduct = () => { if (!newProduct.trim()) return; setProducts([{ id: Date.now(), name: newProduct.trim(), progress: 5, price: 27, next: 'Define promise, buyer, and first outline' }, ...products]); setNewProduct(''); };
-  const addAsset = () => { if (!newAsset.trim()) return; setPipeline([{ id: Date.now(), asset: newAsset.trim(), stage: 'Idea', owner: 'Founder', value: 'unknown' }, ...pipeline]); setNewAsset(''); };
-  const moveAsset = (id) => setPipeline(list => list.map(item => item.id === id ? { ...item, stage: nextStage(item.stage) } : item));
-  const runAgent = (id) => setAgents(list => list.map(a => a.id === id ? { ...a, status: 'Active', queue: Math.max(0, a.queue - 1), completed: a.completed + 1, throughput: Math.min(10, a.throughput + 1) } : a));
-  const toggleAgent = (id) => setAgents(list => list.map(a => a.id === id ? { ...a, status: a.status === 'Active' ? 'Ready' : 'Active' } : a));
+  const touchMemory = () => setSaveStatus('Changes saved for this Snack session');
+  const publishNextClip = () => { setEpisodes(list => list.map((e, i) => i === 0 ? { ...e, clips: e.clips + 1, next: 'Clip posted. Pick the next strongest moment.' } : e)); touchMemory(); };
+  const advanceProduct = (id) => { setProducts(list => list.map(p => p.id === id ? { ...p, progress: Math.min(100, p.progress + 8), next: p.progress + 8 >= 100 ? 'Ready to sell' : p.next } : p)); touchMemory(); };
+  const addEpisode = () => { if (!newEpisode.trim()) return; setEpisodes([{ id: Date.now(), title: newEpisode.trim(), status: 'Draft', clips: 0, next: 'Write hook, outline, and promo angle' }, ...episodes]); setNewEpisode(''); touchMemory(); };
+  const addProduct = () => { if (!newProduct.trim()) return; setProducts([{ id: Date.now(), name: newProduct.trim(), progress: 5, price: 27, next: 'Define promise, buyer, and first outline' }, ...products]); setNewProduct(''); touchMemory(); };
+  const addAsset = () => { if (!newAsset.trim()) return; setPipeline([{ id: Date.now(), asset: newAsset.trim(), stage: 'Idea', owner: 'Founder', value: 'unknown' }, ...pipeline]); setNewAsset(''); touchMemory(); };
+  const moveAsset = (id) => { setPipeline(list => list.map(item => item.id === id ? { ...item, stage: nextStage(item.stage) } : item)); touchMemory(); };
+  const runAgent = (id) => { setAgents(list => list.map(a => a.id === id ? { ...a, status: 'Active', queue: Math.max(0, a.queue - 1), completed: a.completed + 1, throughput: Math.min(10, a.throughput + 1) } : a)); touchMemory(); };
+  const toggleAgent = (id) => { setAgents(list => list.map(a => a.id === id ? { ...a, status: a.status === 'Active' ? 'Ready' : 'Active' } : a)); touchMemory(); };
+  const resetDemoData = () => { setMission(STARTER_MISSION); setEpisodes(starterEpisodes); setProducts(starterProducts); setPipeline(starterPipeline); setAgents(starterAgents); setRevenue('0'); setHours('3'); setVisitors('100'); setSales('0'); setCheckIn(STARTER_CHECK_IN); setSaveStatus('Demo HQ restored'); };
 
-  const renderHQ = () => <><View style={styles.hero}><Text style={styles.brand}>🐻 WILDBEAR.CO • {today}</Text><Text style={styles.title}>Command Mode</Text><Text style={styles.subtitle}>Podcast-first media company cockpit for content, products, automation, and RPH.</Text><ProgressBar value={momentum} /><Text style={styles.muted}>Momentum score: {momentum}/100</Text><Text style={styles.memory}>{saveStatus}</Text></View><View style={styles.metricsRow}><Metric label="Episodes" value={episodes.length} sub="content fuel" /><Metric label="Agents" value={activeAgents} sub="active" /><Metric label="Bottleneck" value={bottleneck.stage} sub={`${bottleneck.count} assets`} /></View><Section title="Operator Briefing"><Card title="Next Best Move" right={<Pill tone="yellow">Auto</Pill>}><Text style={styles.body}>{commandBrief}</Text><GhostButton label="Open Pipeline" onPress={() => setActive('Pipeline')} /></Card></Section><Section title="Today’s Mission"><TextInput value={mission} onChangeText={setMission} multiline placeholder="Type today’s mission" placeholderTextColor={COLORS.muted} style={styles.input} /><View style={styles.actionRow}><GhostButton label="Post a clip" onPress={publishNextClip} /><GhostButton label="Open Agents" onPress={() => setActive('Agents')} /><GhostButton label="Reset Demo" danger onPress={resetDemoData} /></View></Section><Section title="Daily Check-In"><Card title="Founder State" right={<Pill tone="yellow">Energy {checkIn.energy}/10</Pill>}><Text style={styles.label}>Energy</Text><TextInput value={checkIn.energy} onChangeText={(v)=>setCheckIn({...checkIn, energy:v})} keyboardType="numeric" style={styles.input} /><Text style={styles.label}>Focus</Text><TextInput value={checkIn.focus} onChangeText={(v)=>setCheckIn({...checkIn, focus:v})} style={styles.input} /><Text style={styles.label}>Today’s win</Text><TextInput value={checkIn.win} onChangeText={(v)=>setCheckIn({...checkIn, win:v})} placeholder="What moved forward?" placeholderTextColor={COLORS.muted} style={styles.input} /></Card></Section></>;
-  const renderCreate = () => <Section title="Content Engine"><Card title="Add Episode"><TextInput value={newEpisode} onChangeText={setNewEpisode} placeholder="Episode title" placeholderTextColor={COLORS.muted} style={styles.input} /><PrimaryButton label="+ Add Episode" onPress={addEpisode} /></Card>{episodes.map(e => <Card key={e.id} title={e.title} right={<Pill tone={e.status === 'Published' ? 'green' : e.status === 'Draft' ? 'orange' : 'teal'}>{e.status}</Pill>}><Text style={styles.body}>Clips created: {e.clips}</Text><Text style={styles.muted}>Next: {e.next}</Text><GhostButton label="Log Clip" onPress={() => setEpisodes(list => list.map(x => x.id === e.id ? {...x, clips:x.clips+1, status:'Repurpose'} : x))} /></Card>)}</Section>;
+  const renderHQ = () => <><View style={styles.hero}><Text style={styles.brand}>🐻 WILDBEAR.CO • {today}</Text><Text style={styles.title}>Command Mode</Text><Text style={styles.subtitle}>Podcast-first media company cockpit for content, products, automation, and RPH.</Text><ProgressBar value={momentum} /><Text style={styles.muted}>Momentum score: {momentum}/100</Text><Text style={styles.memory}>{saveStatus}</Text></View><View style={styles.metricsRow}><Metric label="Episodes" value={episodes.length} sub="content fuel" /><Metric label="Agents" value={activeAgents} sub="active" /><Metric label="Bottleneck" value={bottleneck.stage} sub={`${bottleneck.count} assets`} /></View><Section title="Operator Briefing"><Card title="Next Best Move" right={<Pill tone="yellow">Auto</Pill>}><Text style={styles.body}>{commandBrief}</Text><GhostButton label="Open Pipeline" onPress={() => setActive('Pipeline')} /></Card></Section><Section title="Today’s Mission"><TextInput value={mission} onChangeText={(v)=>{setMission(v); touchMemory();}} multiline placeholder="Type today’s mission" placeholderTextColor={COLORS.muted} style={styles.input} /><View style={styles.actionRow}><GhostButton label="Post a clip" onPress={publishNextClip} /><GhostButton label="Open Agents" onPress={() => setActive('Agents')} /><GhostButton label="Reset Demo" danger onPress={resetDemoData} /></View></Section><Section title="Daily Check-In"><Card title="Founder State" right={<Pill tone="yellow">Energy {checkIn.energy}/10</Pill>}><Text style={styles.label}>Energy</Text><TextInput value={checkIn.energy} onChangeText={(v)=>{setCheckIn({...checkIn, energy:v}); touchMemory();}} keyboardType="numeric" style={styles.input} /><Text style={styles.label}>Focus</Text><TextInput value={checkIn.focus} onChangeText={(v)=>{setCheckIn({...checkIn, focus:v}); touchMemory();}} style={styles.input} /><Text style={styles.label}>Today’s win</Text><TextInput value={checkIn.win} onChangeText={(v)=>{setCheckIn({...checkIn, win:v}); touchMemory();}} placeholder="What moved forward?" placeholderTextColor={COLORS.muted} style={styles.input} /></Card></Section></>;
+  const renderCreate = () => <Section title="Content Engine"><Card title="Add Episode"><TextInput value={newEpisode} onChangeText={setNewEpisode} placeholder="Episode title" placeholderTextColor={COLORS.muted} style={styles.input} /><PrimaryButton label="+ Add Episode" onPress={addEpisode} /></Card>{episodes.map(e => <Card key={e.id} title={e.title} right={<Pill tone={e.status === 'Published' ? 'green' : e.status === 'Draft' ? 'orange' : 'teal'}>{e.status}</Pill>}><Text style={styles.body}>Clips created: {e.clips}</Text><Text style={styles.muted}>Next: {e.next}</Text><GhostButton label="Log Clip" onPress={() => {setEpisodes(list => list.map(x => x.id === e.id ? {...x, clips:x.clips+1, status:'Repurpose'} : x)); touchMemory();}} /></Card>)}</Section>;
   const renderPipeline = () => <Section title="Repurpose Pipeline"><Card title="Pipeline Health" right={<Pill tone="yellow">Bottleneck: {bottleneck.stage}</Pill>}><Text style={styles.body}>Move assets from idea to offer. The machine only pays when ideas become visible and buyable.</Text><View style={styles.stageRail}>{stageCounts.map(s => <Text key={s.stage} style={styles.stageChip}>{s.stage}: {s.count}</Text>)}</View></Card><Card title="Add Asset"><TextInput value={newAsset} onChangeText={setNewAsset} placeholder="Audio, video, idea, email, offer..." placeholderTextColor={COLORS.muted} style={styles.input} /><PrimaryButton label="+ Add to Pipeline" onPress={addAsset} /></Card>{pipeline.map(item => <Card key={item.id} title={item.asset} right={<Pill tone={item.stage === 'Offer' ? 'green' : item.stage === 'Post' ? 'yellow' : 'teal'}>{item.stage}</Pill>}><Text style={styles.body}>Owner: {item.owner}</Text><Text style={styles.muted}>Value: {item.value}</Text><GhostButton label={item.stage === 'Offer' ? 'Already at Offer' : `Move to ${nextStage(item.stage)}`} onPress={() => moveAsset(item.id)} /></Card>)}</Section>;
   const renderProducts = () => <Section title="Product Vault"><Card title="Add Product"><TextInput value={newProduct} onChangeText={setNewProduct} placeholder="Product name" placeholderTextColor={COLORS.muted} style={styles.input} /><PrimaryButton label="+ Add Product" onPress={addProduct} /></Card>{products.map(p => <Card key={p.id} title={p.name} right={<Pill tone="orange">${p.price}</Pill>}><ProgressBar value={p.progress} /><Text style={styles.body}>{p.progress}% complete</Text><Text style={styles.muted}>Next: {p.next}</Text><GhostButton label="Advance +8%" onPress={() => advanceProduct(p.id)} /></Card>)}</Section>;
-  const renderAgents = () => <><Section title="AI Agent Command"><View style={styles.metricsRow}><Metric label="Active" value={activeAgents} sub="online" /><Metric label="Throughput" value={agentThroughput} sub="capacity" /><Metric label="Queue" value={agents.reduce((s,a)=>s+a.queue,0)} sub="tasks" /></View>{agents.map(a => <Card key={a.id} title={a.name} right={<Pill tone={a.status === 'Active' ? 'green' : 'teal'}>{a.status}</Pill>}><Text style={styles.body}>{a.objective}</Text><View style={styles.metricsRow}><Metric label="Queue" value={a.queue} /><Metric label="Done" value={a.completed} /><Metric label="Power" value={`${a.throughput}/10`} /></View><View style={styles.actionRow}><GhostButton label="Run Agent" onPress={() => runAgent(a.id)} /><GhostButton label={a.status === 'Active' ? 'Pause' : 'Activate'} onPress={() => toggleAgent(a.id)} /></View></Card>)}</Section></>;
-  const renderMoney = () => <><Section title="Revenue Center"><View style={styles.metricsRow}><Metric label="RPH" value={`$${rph}`} sub="revenue/hour" /><Metric label="Conv." value={`${conversion}%`} sub="sales/visitors" /><Metric label="Vault" value={`$${projectedValue}`} sub="rough value" /></View><Text style={styles.label}>Revenue this week</Text><TextInput value={revenue} onChangeText={setRevenue} keyboardType="numeric" placeholder="0" placeholderTextColor={COLORS.muted} style={styles.input} /><Text style={styles.label}>Creative hours worked</Text><TextInput value={hours} onChangeText={setHours} keyboardType="numeric" placeholder="3" placeholderTextColor={COLORS.muted} style={styles.input} /><Text style={styles.label}>Offer page visitors</Text><TextInput value={visitors} onChangeText={setVisitors} keyboardType="numeric" style={styles.input} /><Text style={styles.label}>Sales</Text><TextInput value={sales} onChangeText={setSales} keyboardType="numeric" style={styles.input} /></Section><Section title="Offer Ladder"><Card title="Free → Low Ticket → Core Offer"><Text style={styles.body}>Podcast clip builds trust. Free guide captures email. Workbook sells the first transformation. Course/template stack raises RPH.</Text></Card></Section></>;
+  const renderAgents = () => <Section title="AI Agent Command"><View style={styles.metricsRow}><Metric label="Active" value={activeAgents} sub="online" /><Metric label="Throughput" value={agentThroughput} sub="capacity" /><Metric label="Queue" value={agents.reduce((s,a)=>s+a.queue,0)} sub="tasks" /></View>{agents.map(a => <Card key={a.id} title={a.name} right={<Pill tone={a.status === 'Active' ? 'green' : 'teal'}>{a.status}</Pill>}><Text style={styles.body}>{a.objective}</Text><View style={styles.metricsRow}><Metric label="Queue" value={a.queue} /><Metric label="Done" value={a.completed} /><Metric label="Power" value={`${a.throughput}/10`} /></View><View style={styles.actionRow}><GhostButton label="Run Agent" onPress={() => runAgent(a.id)} /><GhostButton label={a.status === 'Active' ? 'Pause' : 'Activate'} onPress={() => toggleAgent(a.id)} /></View></Card>)}</Section>;
+  const renderMoney = () => <><Section title="Revenue Center"><View style={styles.metricsRow}><Metric label="RPH" value={`$${rph}`} sub="revenue/hour" /><Metric label="Conv." value={`${conversion}%`} sub="sales/visitors" /><Metric label="Vault" value={`$${projectedValue}`} sub="rough value" /></View><Text style={styles.label}>Revenue this week</Text><TextInput value={revenue} onChangeText={(v)=>{setRevenue(v); touchMemory();}} keyboardType="numeric" placeholder="0" placeholderTextColor={COLORS.muted} style={styles.input} /><Text style={styles.label}>Creative hours worked</Text><TextInput value={hours} onChangeText={(v)=>{setHours(v); touchMemory();}} keyboardType="numeric" placeholder="3" placeholderTextColor={COLORS.muted} style={styles.input} /><Text style={styles.label}>Offer page visitors</Text><TextInput value={visitors} onChangeText={(v)=>{setVisitors(v); touchMemory();}} keyboardType="numeric" style={styles.input} /><Text style={styles.label}>Sales</Text><TextInput value={sales} onChangeText={(v)=>{setSales(v); touchMemory();}} keyboardType="numeric" style={styles.input} /></Section><Section title="Offer Ladder"><Card title="Free → Low Ticket → Core Offer"><Text style={styles.body}>Podcast clip builds trust. Free guide captures email. Workbook sells the first transformation. Course/template stack raises RPH.</Text></Card></Section></>;
   const renderScreen = () => active === 'HQ' ? renderHQ() : active === 'Create' ? renderCreate() : active === 'Pipeline' ? renderPipeline() : active === 'Products' ? renderProducts() : active === 'Agents' ? renderAgents() : renderMoney();
   return <SafeAreaView style={styles.container}><ScrollView contentContainerStyle={styles.content}>{renderScreen()}</ScrollView><View style={styles.nav}>{TABS.map(tab => <TouchableOpacity key={tab} onPress={() => setActive(tab)} style={[styles.navItem, active === tab && styles.navActive]}><Text style={[styles.navText, active === tab && styles.navTextActive]}>{tab}</Text></TouchableOpacity>)}</View></SafeAreaView>;
 }
